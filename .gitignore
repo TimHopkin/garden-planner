@@ -1,0 +1,17 @@
+# Mac OS files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Node dependencies
+node_modules/
+npm-debug.log
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Environment variables
+.env
