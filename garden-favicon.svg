@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="16" fill="#3c6e47"/>
+  
+  <!-- Plant/seedling -->
+  <path d="M16 5 L16 24" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+  <path d="M12 10 C16 10, 16 5, 16 5 C16 5, 16 10, 20 10" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+  <path d="M10 15 C15 15, 16 8, 16 8 C16 8, 17 15, 22 15" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+  <path d="M8 20 C14 20, 15 12, 16 12 C17 12, 18 20, 24 20" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+</svg>
