@@ -10,6 +10,9 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
 </head>
 <body>
     <div class="container">
@@ -36,7 +39,7 @@
                     <p>Join thousands of gardeners planning their perfect gardens</p>
                 </div>
                 
-                <form class="auth-form" id="signup-form">
+                <form class="auth-form" id="signupForm">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="first-name">First Name</label>
@@ -90,6 +93,7 @@
                     </div>
                     
                     <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+                    <div id="signupError" class="error" style="display: none; color: red; margin-top: 10px;"></div>
                 </form>
                 
                 <div class="auth-divider">
@@ -192,11 +196,23 @@
         });
         
         // Handle form submission
-        document.getElementById('signup-form').addEventListener('submit', function(e) {
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            // In a real application, you would validate and submit the form to a backend
-            // For this demo, we'll just redirect to the app page
-            window.location.href = 'app.html';
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            auth.createUserWithEmailAndPassword(email, password)
+              .then((userCredential) => {
+                // Signed up
+                const user = userCredential.user;
+                console.log("User signed up:", user.email);
+                window.location.href = 'app.html'; // Redirect to app page
+              })
+              .catch((error) => {
+                console.error("Error signing up:", error.code, error.message);
+                document.getElementById('signupError').textContent = error.message;
+                document.getElementById('signupError').style.display = 'block';
+              });
         });
     </script>
     

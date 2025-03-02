@@ -10,6 +10,9 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
 </head>
 <body>
     <div class="container">
@@ -36,7 +39,7 @@
                     <p>Sign in to access your garden projects</p>
                 </div>
                 
-                <form class="auth-form" id="signin-form">
+                <form class="auth-form" id="loginForm">
                     <div class="form-group">
                         <label for="email">Email Address</label>
                         <div class="input-with-icon">
@@ -68,6 +71,7 @@
                     </div>
                     
                     <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+                    <div id="loginError" class="error" style="display: none; color: red; margin-top: 10px;"></div>
                 </form>
                 
                 <div class="auth-divider">
@@ -134,11 +138,23 @@
         });
         
         // Handle form submission
-        document.getElementById('signin-form').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            // In a real application, you would validate and submit the form to a backend
-            // For this demo, we'll just redirect to the app page
-            window.location.href = 'app.html';
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            auth.signInWithEmailAndPassword(email, password)
+              .then((userCredential) => {
+                // Signed in 
+                const user = userCredential.user;
+                console.log("User logged in:", user.email);
+                window.location.href = 'app.html'; // Redirect to app page
+              })
+              .catch((error) => {
+                console.error("Error logging in:", error.code, error.message);
+                document.getElementById('loginError').textContent = error.message;
+                document.getElementById('loginError').style.display = 'block';
+              });
         });
     </script>
     

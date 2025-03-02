@@ -10,6 +10,9 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
 </head>
 <body>
     <div class="container">
@@ -36,7 +39,7 @@
                         <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
                         <a href="help.html"><i class="fas fa-question-circle"></i> Help</a>
                         <div class="dropdown-divider"></div>
-                        <a href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
                     </div>
                 </div>
             </div>
@@ -178,6 +181,30 @@
     <script src="script.js"></script>
     
     <script>
+        // Check if user is logged in
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                // No user is signed in, redirect to login page
+                window.location.href = 'signin.html';
+            } else {
+                console.log("User is signed in:", user.email);
+                // You could display the user's email or personalize the experience here
+                document.querySelector('.username').textContent = user.email;
+            }
+        });
+        
+        // Add logout functionality
+        function logout() {
+            auth.signOut()
+              .then(() => {
+                console.log("User logged out");
+                window.location.href = 'index.html';
+              })
+              .catch((error) => {
+                console.error("Error logging out:", error);
+              });
+        }
+        
         // User menu toggle
         document.querySelector('.user-button').addEventListener('click', function() {
             document.querySelector('.dropdown-menu').classList.toggle('show');
