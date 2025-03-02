@@ -10,9 +10,14 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-    <script src="firebase-config.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
+    <script src="https://unpkg.com/esri-leaflet-geocoder@3.1.4/dist/esri-leaflet-geocoder.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/esri-leaflet-geocoder@3.1.4/dist/esri-leaflet-geocoder.css">
+    <!-- Firebase components will be added back later -->
 </head>
 <body>
     <div class="container">
@@ -22,26 +27,10 @@
               <span>GardenMaster 2025</span>
             </a>
             <div class="nav-links">
-                <a href="dashboard.html">Dashboard</a>
+                <a href="index.html">Home</a>
+                <a href="pricing.html">Pricing</a>
+                <a href="about.html">About Us</a>
                 <a href="app.html" class="active">Garden Planner</a>
-                <a href="my-gardens.html">My Gardens</a>
-                <a href="plants.html">Plant Database</a>
-            </div>
-            <div class="nav-buttons">
-                <div class="user-menu">
-                    <button class="user-button">
-                        <i class="fas fa-user-circle"></i>
-                        <span class="username">John Smith</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div class="dropdown-menu">
-                        <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
-                        <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
-                        <a href="help.html"><i class="fas fa-question-circle"></i> Help</a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                    </div>
-                </div>
             </div>
         </nav>
         
@@ -106,6 +95,7 @@
                     <button class="tab-button active" data-tab="garden" id="garden-tab-btn"><i class="fas fa-seedling"></i> Garden Layout</button>
                     <button class="tab-button" data-tab="info" id="info-tab-btn"><i class="fas fa-info-circle"></i> Plant Information</button>
                     <button class="tab-button" data-tab="timeline" id="timeline-tab-btn"><i class="fas fa-calendar-alt"></i> Growing Timeline</button>
+                    <button class="tab-button" data-tab="map-view" id="map-view-tab-btn"><i class="fas fa-map-marked-alt"></i> Map View</button>
                 </div>
                 
                 <div class="tab-content active" id="garden-tab">
@@ -171,6 +161,34 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="tab-content" id="map-view" style="display: none;">
+                    <div class="map-container">
+                        <div id="garden-map" style="height: 500px; width: 100%;"></div>
+                    </div>
+                    <div class="map-controls">
+                        <div class="control-group">
+                            <label for="address-search">Find your location:</label>
+                            <div class="search-container">
+                                <input type="text" id="address-search" placeholder="Enter your address">
+                                <button id="search-button">Search</button>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <button id="save-map">Save Map</button>
+                            <button id="load-map">Load Saved Map</button>
+                        </div>
+                        <div class="map-instructions">
+                            <h4>Instructions:</h4>
+                            <ul>
+                                <li>Use the search box to find your location</li>
+                                <li>Use the drawing tools (top right) to outline your garden areas</li>
+                                <li>Click on a shape to edit or delete it</li>
+                                <li>Save your map when finished</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -179,47 +197,6 @@
     <div class="tooltip" id="tooltip"></div>
 
     <script src="script.js"></script>
-    
-    <script>
-        // Check if user is logged in
-        auth.onAuthStateChanged((user) => {
-            if (!user) {
-                // No user is signed in, redirect to login page
-                window.location.href = 'signin.html';
-            } else {
-                console.log("User is signed in:", user.email);
-                // You could display the user's email or personalize the experience here
-                document.querySelector('.username').textContent = user.email;
-            }
-        });
-        
-        // Add logout functionality
-        function logout() {
-            auth.signOut()
-              .then(() => {
-                console.log("User logged out");
-                window.location.href = 'index.html';
-              })
-              .catch((error) => {
-                console.error("Error logging out:", error);
-              });
-        }
-        
-        // User menu toggle
-        document.querySelector('.user-button').addEventListener('click', function() {
-            document.querySelector('.dropdown-menu').classList.toggle('show');
-        });
-        
-        // Hide dropdown when clicking outside
-        window.addEventListener('click', function(event) {
-            if (!event.target.matches('.user-button') && 
-                !event.target.closest('.user-button')) {
-                const dropdown = document.querySelector('.dropdown-menu');
-                if (dropdown.classList.contains('show')) {
-                    dropdown.classList.remove('show');
-                }
-            }
-        });
-    </script>
+    <script src="map-view.js"></script>
 </body>
 </html>
