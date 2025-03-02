@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garden Planner - GardenMaster 2025</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="logo">🌱 GardenMaster 2025</div>
+            <div class="nav-links">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="app.html" class="active">Garden Planner</a>
+                <a href="my-gardens.html">My Gardens</a>
+                <a href="plants.html">Plant Database</a>
+            </div>
+            <div class="nav-buttons">
+                <div class="user-menu">
+                    <button class="user-button">
+                        <i class="fas fa-user-circle"></i>
+                        <span class="username">John Smith</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+                        <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+                        <a href="help.html"><i class="fas fa-question-circle"></i> Help</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <header class="app-header">
+            <h1>Garden Planner</h1>
+            <div class="app-actions">
+                <button class="btn btn-outline"><i class="fas fa-share-alt"></i> Share</button>
+                <button class="btn btn-outline"><i class="fas fa-download"></i> Export</button>
+                <button class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+            </div>
+        </header>
+        
+        <main>
+            <!-- Sidebar content -->
+            <div class="sidebar">
+                <div class="search-container">
+                    <h2>Plant Database</h2>
+                    <div class="search-box">
+                        <input type="text" id="plant-search" placeholder="Search plants...">
+                        <span class="clear-search" id="clear-search"><i class="fas fa-times"></i></span>
+                    </div>
+                    
+                    <div class="category-filter">
+                        <label for="category-filter">Category:</label>
+                        <select id="category-filter">
+                            <option value="">All Categories</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="plant-list-container">
+                    <h3>Available Plants</h3>
+                    <div class="plant-list" id="plants-list">
+                        <!-- Plant items will be populated here -->
+                    </div>
+                    <div class="plant-list-help">
+                        <p><i class="fas fa-info-circle"></i> Click a plant to select, then click on the garden grid to place it</p>
+                    </div>
+                </div>
+                
+                <div class="calendar-container">
+                    <h3>Planting Calendar</h3>
+                    <div class="planting-date-container">
+                        <label for="planting-date">Planting Date:</label>
+                        <input type="date" id="planting-date" class="planting-date">
+                    </div>
+                    <table class="calendar" id="calendar">
+                        <thead>
+                            <tr>
+                                <th>Plant</th>
+                                <th>Planting Times</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calendar-body"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Garden area content -->
+            <div class="garden-area">
+                <div class="tab-buttons">
+                    <button class="tab-button active" data-tab="garden" id="garden-tab-btn"><i class="fas fa-seedling"></i> Garden Layout</button>
+                    <button class="tab-button" data-tab="info" id="info-tab-btn"><i class="fas fa-info-circle"></i> Plant Information</button>
+                    <button class="tab-button" data-tab="timeline" id="timeline-tab-btn"><i class="fas fa-calendar-alt"></i> Growing Timeline</button>
+                </div>
+                
+                <div class="tab-content active" id="garden-tab">
+                    <div class="garden-controls">
+                        <div class="garden-size-control">
+                            <label for="grid-size">Garden Size:</label>
+                            <select id="grid-size">
+                                <option value="6">6×6</option>
+                                <option value="8">8×8</option>
+                                <option value="10" selected>10×10</option>
+                                <option value="12">12×12</option>
+                            </select>
+                        </div>
+                        
+                        <div class="garden-buttons">
+                            <button id="clear-garden-btn"><i class="fas fa-eraser"></i> Clear Garden</button>
+                            <button id="new-garden-btn"><i class="fas fa-plus"></i> New Garden</button>
+                            <button id="save-garden-btn"><i class="fas fa-save"></i> Save Garden</button>
+                            <button id="load-garden-btn"><i class="fas fa-folder-open"></i> Load Garden</button>
+                        </div>
+                    </div>
+                    
+                    <div class="garden-layout">
+                        <div class="garden-grid" id="garden-grid">
+                            <!-- Grid cells will be created here -->
+                        </div>
+                        
+                        <div class="garden-instructions">
+                            <h3>Instructions:</h3>
+                            <ol>
+                                <li>Select a plant from the list on the left</li>
+                                <li>Click on a grid cell to place the plant</li>
+                                <li>Click on a placed plant to see details</li>
+                                <li>Use the tabs to view plant information and timelines</li>
+                            </ol>
+                            <p class="companion-tip"><i class="fas fa-lightbulb"></i> The system will alert you about companion planting compatibility!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="info-tab" style="display: none;">
+                    <div class="plant-database-intro">
+                        <h2>Plant Database</h2>
+                        <p>Browse detailed information about plants in our database. Select a plant from the list on the left to view its growing information, companion planting suggestions, and more.</p>
+                    </div>
+                    <div class="plant-info-panel" id="plant-info-panel">
+                        <div class="plant-info-placeholder">
+                            <i class="fas fa-leaf plant-icon"></i>
+                            <p>Select a plant to view detailed information</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="timeline-tab" style="display: none;">
+                    <div class="timeline-container">
+                        <h2>Growing Calendar</h2>
+                        <p class="timeline-intro">Visual representation of when to sow, grow, and harvest your plants:</p>
+                        <div class="month-timeline" id="month-timeline">
+                            <!-- Month headers will be created here -->
+                        </div>
+                        <div class="planting-timelines" id="planting-timelines">
+                            <!-- Plant timelines will be created here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    <div class="tooltip" id="tooltip"></div>
+
+    <script src="script.js"></script>
+    
+    <script>
+        // User menu toggle
+        document.querySelector('.user-button').addEventListener('click', function() {
+            document.querySelector('.dropdown-menu').classList.toggle('show');
+        });
+        
+        // Hide dropdown when clicking outside
+        window.addEventListener('click', function(event) {
+            if (!event.target.matches('.user-button') && 
+                !event.target.closest('.user-button')) {
+                const dropdown = document.querySelector('.dropdown-menu');
+                if (dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

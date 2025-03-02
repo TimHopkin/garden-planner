@@ -3,31 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GardenMaster 2025</title>
+    <title>GardenMaster 2025 - Your Garden Planning Solution</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <header>
+        <nav class="navbar">
             <div class="logo">🌱 GardenMaster 2025</div>
-            <div class="tagline">Design your dream garden with ease</div>
+            <div class="nav-links">
+                <a href="index.html" class="active">Home</a>
+                <a href="pricing.html">Pricing</a>
+                <a href="about.html">About</a>
+            </div>
+            <div class="nav-buttons">
+                <a href="signin.html" class="btn btn-secondary">Sign In</a>
+                <a href="signup.html" class="btn btn-primary">Sign Up</a>
+            </div>
+        </nav>
+        
+        <header class="hero">
+            <div class="hero-content">
+                <h1>Design Your Dream Garden with Ease</h1>
+                <p class="hero-tagline">Plan, visualize, and optimize your garden with our intuitive planning tool.</p>
+                <div class="hero-buttons">
+                    <a href="signup.html" class="btn btn-primary btn-large">Get Started Free</a>
+                    <a href="#features" class="btn btn-secondary btn-large">Learn More</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="img/garden-planner-hero.jpg" alt="Garden Planner Preview" onerror="this.src='https://via.placeholder.com/600x400?text=Garden+Planner+Preview';">
+            </div>
         </header>
         
-        <main>
-            <!-- Sidebar content -->
-            <div class="sidebar">
-                <!-- All your sidebar HTML -->
-            </div>
+        <section id="features" class="features">
+            <h2 class="section-title">Powerful Garden Planning Features</h2>
             
-            <!-- Garden area content -->
-            <div class="garden-area">
-                <!-- All your garden area HTML -->
+            <div class="feature-cards">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-seedling"></i></div>
+                    <h3>Extensive Plant Database</h3>
+                    <p>Access detailed information on hundreds of plants, including growing conditions, companion planting advice, and seasonal guides.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-drafting-compass"></i></div>
+                    <h3>Visual Garden Designer</h3>
+                    <p>Drag and drop plants onto your custom garden grid to visualize your garden layout before planting a single seed.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <h3>Seasonal Planning</h3>
+                    <p>Optimize planting and harvesting times with our interactive calendar and get reminders for important gardening tasks.</p>
+                </div>
             </div>
-        </main>
+        </section>
+        
+        <section class="cta-section">
+            <div class="cta-content">
+                <h2>Ready to Start Planning Your Garden?</h2>
+                <p>Join thousands of gardeners who have simplified their garden planning process.</p>
+                <div class="cta-buttons">
+                    <a href="signup.html" class="btn btn-primary btn-large">Try It Free</a>
+                    <a href="pricing.html" class="btn btn-secondary btn-large">View Pricing</a>
+                </div>
+            </div>
+        </section>
+        
+        <section class="testimonials">
+            <h2 class="section-title">What Our Users Say</h2>
+            
+            <div class="testimonial-cards">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"GardenMaster has completely transformed how I plan my vegetable garden. The companion planting feature alone has increased my yield by 30%!"</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="testimonial-info">
+                            <strong>Sarah Johnson</strong>
+                            <span>Urban Gardener</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"As a landscape designer, I use GardenMaster for initial client visualizations. It's intuitive enough for beginners but powerful enough for professionals."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="testimonial-info">
+                            <strong>Michael Chen</strong>
+                            <span>Landscape Architect</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
     
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <div class="logo">🌱 GardenMaster 2025</div>
+                    <p>Your complete garden planning solution</p>
+                </div>
+                
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Product</h4>
+                        <a href="features.html">Features</a>
+                        <a href="pricing.html">Pricing</a>
+                        <a href="#">FAQ</a>
+                    </div>
+                    
+                    <div class="footer-column">
+                        <h4>Company</h4>
+                        <a href="about.html">About Us</a>
+                        <a href="#">Blog</a>
+                        <a href="#">Careers</a>
+                    </div>
+                    
+                    <div class="footer-column">
+                        <h4>Support</h4>
+                        <a href="#">Help Center</a>
+                        <a href="#">Contact Us</a>
+                        <a href="#">Privacy Policy</a>
+                        <a href="#">Terms of Service</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 GardenMaster. All rights reserved.</p>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-pinterest"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
     <div class="notification" id="notification"></div>
-    <div class="tooltip" id="tooltip"></div>
 
     <script src="script.js"></script>
 </body>
