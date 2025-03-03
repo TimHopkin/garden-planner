@@ -2,13 +2,30 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Get all tab buttons and add click event listeners
   const tabButtons = document.querySelectorAll('.tab-button');
+  
+  // Get the map view button specifically
+  const mapViewBtn = document.getElementById('map-view-tab-btn');
+  
+  // Add special handling for the map view tab
+  if (mapViewBtn) {
+    mapViewBtn.addEventListener('click', function() {
+      // Switch to map tab and initialize the map
+      switchToMapTab();
+    });
+  }
+  
+  // Generic tab handling for all tabs
   tabButtons.forEach(button => {
     button.addEventListener('click', function() {
       const tabId = this.getAttribute('data-tab');
       
+      // Skip the special handling for map view since we have specific handler
+      if (tabId === 'map-view') return;
+      
       // Hide all tab content
       document.querySelectorAll('.tab-content').forEach(tab => {
         tab.style.display = 'none';
+        tab.classList.remove('active');
       });
       
       // Deactivate all tab buttons
@@ -17,15 +34,14 @@ document.addEventListener('DOMContentLoaded', function() {
       });
       
       // Show the selected tab content
-      document.getElementById(tabId).style.display = 'block';
+      const selectedTab = document.getElementById(tabId);
+      if (selectedTab) {
+        selectedTab.style.display = 'block';
+        selectedTab.classList.add('active');
+      }
       
       // Activate the clicked button
       this.classList.add('active');
-      
-      // Initialize map if the Map View tab is selected
-      if (tabId === 'map-view' && !window.gardenMap) {
-        initializeMap();
-      }
     });
   });
   
@@ -33,7 +49,73 @@ document.addEventListener('DOMContentLoaded', function() {
   if (tabButtons.length > 0 && !document.querySelector('.tab-button.active')) {
     tabButtons[0].click();
   }
+  
+  // Add a direct click handler for map view button
+  if (mapViewBtn) {
+    // Create a mutation observer to check when the app.html is fully loaded
+    const observer = new MutationObserver((mutations, obs) => {
+      const mapTab = document.getElementById('map-view');
+      if (mapTab) {
+        // If map tab exists and there's a hash for it, show it
+        if (window.location.hash === '#map-view') {
+          setTimeout(() => {
+            switchToMapTab();
+          }, 500); // Short delay to ensure everything is ready
+        }
+        obs.disconnect(); // Stop observing once we've found the map tab
+      }
+    });
+    
+    // Start observing
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
 });
+
+// Function to switch to map tab and initialize the map
+function switchToMapTab() {
+  // Get all tab buttons and tab contents
+  const tabButtons = document.querySelectorAll('.tab-button');
+  const tabContents = document.querySelectorAll('.tab-content');
+  
+  // Hide all tab content
+  tabContents.forEach(tab => {
+    tab.style.display = 'none';
+    tab.classList.remove('active');
+  });
+  
+  // Deactivate all tab buttons
+  tabButtons.forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Activate the map tab button
+  const mapButton = document.getElementById('map-view-tab-btn');
+  if (mapButton) {
+    mapButton.classList.add('active');
+  }
+  
+  // Show the map tab content
+  const mapTab = document.getElementById('map-view');
+  if (mapTab) {
+    mapTab.style.display = 'block';
+    mapTab.classList.add('active');
+    
+    // Initialize map if it doesn't exist yet
+    if (!window.gardenMap) {
+      console.log("Initializing map...");
+      setTimeout(initializeMap, 100); // Short delay to ensure the tab is visible
+    } else {
+      // If map exists, trigger a resize event to refresh the map display
+      if (window.gardenMap) {
+        console.log("Map already exists, refreshing...");
+        window.gardenMap.invalidateSize();
+      }
+    }
+  }
+}
 
 // Initialize the Leaflet map
 function initializeMap() {
