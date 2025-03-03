@@ -4,6 +4,75 @@
  * planting calendars, and detailed plant information.
  */
 
+// Add global event listeners for UI interactions that might be present across multiple pages
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle all "Try Garden Planner" and similar buttons to ensure they work from all pages
+    const gardenPlannerButtons = document.querySelectorAll('a[href="app.html"]');
+    gardenPlannerButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            // Store that we want to open the app in sessionStorage
+            // This will help if we need to initialize anything specific when the app opens
+            sessionStorage.setItem('openGardenPlanner', 'true');
+        });
+    });
+    
+    // Handle specific tab clicks from marketing pages
+    // For example, if someone clicks "View Map Features" from features.html
+    const mapFeatureLinks = document.querySelectorAll('a[href="app.html#map-view"]');
+    mapFeatureLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            // Store that we want to open the map tab when app.html loads
+            sessionStorage.setItem('openGardenPlannerTab', 'map-view');
+        });
+    });
+    
+    // Check if we're on app.html and should open a specific tab
+    if (window.location.pathname.endsWith('app.html')) {
+        // Get the requested tab from either the URL hash or session storage
+        const tabToOpen = window.location.hash.substring(1) || sessionStorage.getItem('openGardenPlannerTab');
+        
+        if (tabToOpen) {
+            // Find the tab button
+            const tabButton = document.querySelector(`.tab-button[data-tab="${tabToOpen}"]`);
+            
+            // If found, click it after a short delay to ensure the page is ready
+            if (tabButton) {
+                setTimeout(() => {
+                    tabButton.click();
+                }, 300);
+            }
+            
+            // Clear the session storage
+            sessionStorage.removeItem('openGardenPlannerTab');
+        }
+        
+        // Clear other flags
+        sessionStorage.removeItem('openGardenPlanner');
+    }
+    
+    // Initialize notification system
+    window.showNotification = function(message, type = "") {
+        const notification = document.getElementById('notification');
+        
+        if (notification) {
+            notification.textContent = message;
+            notification.className = 'notification';
+            
+            if (type) {
+                notification.classList.add(type);
+            }
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        } else {
+            console.log(`Notification: ${message} (${type})`);
+        }
+    };
+});
+
 // DOM Elements
 document.addEventListener('DOMContentLoaded', () => {
     // Main UI Elements
@@ -61,10 +130,26 @@ document.addEventListener('DOMContentLoaded', () => {
         "Fruits": "🍓",
         "Bean": "🫘",
         "Pea": "🫛",
+        "Peas": "🫛",
         "Aubergine": "🍆",
         "Beetroot": "🫒", // No beetroot emoji, using olive
         "Chili": "🌶️",
-        "Peas": "🫛"
+        "Spinach": "🥬",
+        "Kale": "🥬",
+        "Zucchini": "🥒",
+        "Courgette": "🥒",
+        "Radish": "🥕",
+        "Basil": "🌿",
+        "Rosemary": "🌿",
+        "Strawberry": "🍓",
+        "Sage": "🌿",
+        "Marigold": "🌼",
+        "Nasturtium": "🌸",
+        "Thyme": "🌿",
+        "Mint": "🌿",
+        "Sunflower": "🌻",
+        "Sweet": "🍭",
+        "Bush": "🌱"
     };
     
     // Default emojis for plant categories
@@ -82,6 +167,15 @@ document.addEventListener('DOMContentLoaded', () => {
         "Annual flowers": "🌸",
         "Biennial flowers": "🌺",
         "Perennial flowers": "🌻",
+        "Herb": "🌿",
+        "Grain": "🌾",
+        "Leafy": "🥬",
+        "Legume": "🫘",
+        "Fruit": "🍓",
+        "Flower": "🌸",
+        "Root": "🥕",
+        "Brassica": "🥦",
+        "Fruiting Veg": "🍅",
         "default": "🌱"
     };
     
@@ -409,6 +503,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Initialize month timeline
         initializeMonthTimeline();
         
+        // Initialize plant catalog for database view
+        initializePlantCatalog();
+        
         // Initialize event listeners
         initializeEventListeners();
         
@@ -416,6 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('garden-tab-btn').addEventListener('click', () => switchTab('garden'));
         document.getElementById('info-tab-btn').addEventListener('click', () => switchTab('info'));
         document.getElementById('timeline-tab-btn').addEventListener('click', () => switchTab('timeline'));
+        document.getElementById('map-view-tab-btn')?.addEventListener('click', () => switchTab('map-view'));
         
         // Fix search functionality
         plantSearch.addEventListener('input', () => {
@@ -429,7 +527,19 @@ document.addEventListener('DOMContentLoaded', () => {
             updatePlantList();
         });
         
-        // Add a plant database tab (alternative way to view all plants)
+        // Initialize comparison table with empty message
+        const comparisonTableBody = document.getElementById('comparison-table-body');
+        if (comparisonTableBody) {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 5;
+            cell.textContent = 'Select plants to compare by checking the boxes in the plant catalog';
+            cell.style.textAlign = 'center';
+            cell.style.padding = '20px';
+            row.appendChild(cell);
+            comparisonTableBody.appendChild(row);
+        }
+        
         // Load a default plant info if no plant selected
         const firstPlantId = Object.keys(plantDatabase)[0];
         showPlantInfo(firstPlantId);
@@ -1269,6 +1379,344 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    // Initialize the plant catalog
+    function initializePlantCatalog() {
+        const plantCatalog = document.getElementById('plant-catalog');
+        if (!plantCatalog) return;
+        
+        // Clear existing content
+        plantCatalog.innerHTML = '';
+        
+        // Create plant cards
+        Object.entries(plantDatabase).forEach(([plantId, plant]) => {
+            const plantCard = createPlantCard(plantId, plant);
+            plantCatalog.appendChild(plantCard);
+        });
+        
+        // Initialize category filter in database view
+        const databaseCategoryFilter = document.getElementById('database-category-filter');
+        if (databaseCategoryFilter) {
+            databaseCategoryFilter.innerHTML = '<option value="">All Categories</option>';
+            
+            // Get unique categories
+            const categories = new Set();
+            Object.values(plantDatabase).forEach(plant => {
+                if (plant.Category) {
+                    categories.add(plant.Category);
+                }
+            });
+            
+            // Add categories to filter
+            Array.from(categories).sort().forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                databaseCategoryFilter.appendChild(option);
+            });
+            
+            // Add event listener
+            databaseCategoryFilter.addEventListener('change', filterPlantCatalog);
+        }
+        
+        // Add event listener for database search
+        const databaseSearchInput = document.getElementById('database-search-input');
+        if (databaseSearchInput) {
+            databaseSearchInput.addEventListener('input', filterPlantCatalog);
+        }
+        
+        // Add event listener for view all button
+        const viewAllButton = document.getElementById('database-view-all');
+        if (viewAllButton) {
+            viewAllButton.addEventListener('click', () => {
+                if (databaseSearchInput) databaseSearchInput.value = '';
+                if (databaseCategoryFilter) databaseCategoryFilter.value = '';
+                filterPlantCatalog();
+            });
+        }
+        
+        // Add event listeners for season filter buttons
+        const seasonButtons = document.querySelectorAll('.filter-btn[data-season]');
+        seasonButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (button.classList.contains('active')) {
+                    button.classList.remove('active');
+                } else {
+                    seasonButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                }
+                filterPlantCatalog();
+            });
+        });
+        
+        // Add event listeners for difficulty filter buttons
+        const difficultyButtons = document.querySelectorAll('.filter-btn[data-difficulty]');
+        difficultyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (button.classList.contains('active')) {
+                    button.classList.remove('active');
+                } else {
+                    difficultyButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                }
+                filterPlantCatalog();
+            });
+        });
+        
+        // Add comparison functionality
+        const compareButton = document.getElementById('compare-selected');
+        if (compareButton) {
+            compareButton.addEventListener('click', compareSelectedPlants);
+        }
+        
+        const clearComparisonButton = document.getElementById('clear-comparison');
+        if (clearComparisonButton) {
+            clearComparisonButton.addEventListener('click', clearComparison);
+        }
+    }
+    
+    // Create a plant card for the catalog
+    function createPlantCard(plantId, plant) {
+        const card = document.createElement('div');
+        card.className = 'plant-card';
+        card.dataset.plantId = plantId;
+        
+        const emoji = document.createElement('div');
+        emoji.className = 'plant-card-emoji';
+        emoji.textContent = getPlantEmoji(plant);
+        
+        const name = document.createElement('div');
+        name.className = 'plant-card-name';
+        name.textContent = plant.Crop;
+        
+        const category = document.createElement('div');
+        category.className = 'plant-card-category';
+        category.textContent = plant.Category || '';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'plant-checkbox';
+        checkbox.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card click when checking the box
+        });
+        
+        card.appendChild(emoji);
+        card.appendChild(name);
+        card.appendChild(category);
+        card.appendChild(checkbox);
+        
+        // Add click event to show plant info
+        card.addEventListener('click', () => {
+            // Remove selected class from all cards
+            document.querySelectorAll('.plant-card.selected').forEach(c => {
+                c.classList.remove('selected');
+            });
+            
+            // Add selected class to this card
+            card.classList.add('selected');
+            
+            // Show plant info
+            showPlantInfo(plantId);
+        });
+        
+        return card;
+    }
+    
+    // Filter plant catalog based on search, category, season, and difficulty
+    function filterPlantCatalog() {
+        const searchInput = document.getElementById('database-search-input');
+        const categoryFilter = document.getElementById('database-category-filter');
+        const activeSeasonButton = document.querySelector('.filter-btn[data-season].active');
+        const activeDifficultyButton = document.querySelector('.filter-btn[data-difficulty].active');
+        
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const category = categoryFilter ? categoryFilter.value : '';
+        const season = activeSeasonButton ? activeSeasonButton.dataset.season : '';
+        const difficulty = activeDifficultyButton ? activeDifficultyButton.dataset.difficulty : '';
+        
+        const plantCards = document.querySelectorAll('.plant-card');
+        
+        plantCards.forEach(card => {
+            const plantId = card.dataset.plantId;
+            const plant = plantDatabase[plantId];
+            
+            // Apply filters
+            let searchMatch = true;
+            if (searchTerm) {
+                searchMatch = plant.Crop.toLowerCase().includes(searchTerm) || 
+                             (plant.Category && plant.Category.toLowerCase().includes(searchTerm)) ||
+                             (plant.Family && plant.Family.toLowerCase().includes(searchTerm));
+            }
+            
+            let categoryMatch = true;
+            if (category) {
+                categoryMatch = plant.Category === category;
+            }
+            
+            let seasonMatch = true;
+            if (season) {
+                seasonMatch = matchesSeason(plant, season);
+            }
+            
+            let difficultyMatch = true;
+            if (difficulty) {
+                difficultyMatch = matchesDifficulty(plant, difficulty);
+            }
+            
+            // Show or hide card based on filter results
+            if (searchMatch && categoryMatch && seasonMatch && difficultyMatch) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    
+    // Check if plant matches the selected season
+    function matchesSeason(plant, season) {
+        switch(season) {
+            case 'spring':
+                return plant.sowEarlyMonth <= 2 || plant.sowLateMonth >= 2;
+            case 'summer':
+                return plant.sowEarlyMonth <= 5 && plant.sowLateMonth >= 3;
+            case 'fall':
+                return plant.sowEarlyMonth <= 8 && plant.sowLateMonth >= 6;
+            case 'winter':
+                return plant.sowEarlyMonth >= 9 || plant.sowLateMonth <= 1;
+            default:
+                return true;
+        }
+    }
+    
+    // Check if plant matches the selected difficulty
+    function matchesDifficulty(plant, difficulty) {
+        // This is a simplification - in a real app, you would have difficulty data in your plant database
+        if (difficulty === 'beginner') {
+            return plant.Crop.toLowerCase() in ['lettuce', 'radish', 'bean', 'pea', 'spinach', 'zucchini'];
+        } else if (difficulty === 'intermediate') {
+            return plant.Crop.toLowerCase() in ['tomato', 'pepper', 'cucumber', 'carrot', 'broccoli', 'kale'];
+        } else if (difficulty === 'advanced') {
+            return plant.Crop.toLowerCase() in ['aubergine', 'melon', 'celery', 'asparagus', 'artichoke'];
+        }
+        return true;
+    }
+    
+    // Compare selected plants
+    function compareSelectedPlants() {
+        const checkedPlants = document.querySelectorAll('.plant-checkbox:checked');
+        const tableBody = document.getElementById('comparison-table-body');
+        
+        if (!tableBody) return;
+        
+        // Clear the table
+        tableBody.innerHTML = '';
+        
+        // Show message if no plants selected
+        if (checkedPlants.length === 0) {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 5;
+            cell.textContent = 'Select plants to compare by checking the boxes in the plant catalog';
+            cell.style.textAlign = 'center';
+            cell.style.padding = '20px';
+            row.appendChild(cell);
+            tableBody.appendChild(row);
+            return;
+        }
+        
+        // Add row for each selected plant
+        checkedPlants.forEach(checkbox => {
+            const card = checkbox.closest('.plant-card');
+            const plantId = card.dataset.plantId;
+            const plant = plantDatabase[plantId];
+            
+            const row = document.createElement('tr');
+            
+            // Plant name cell
+            const nameCell = document.createElement('td');
+            const nameWrapper = document.createElement('div');
+            nameWrapper.style.display = 'flex';
+            nameWrapper.style.alignItems = 'center';
+            
+            const emoji = document.createElement('span');
+            emoji.style.fontSize = '24px';
+            emoji.style.marginRight = '10px';
+            emoji.textContent = getPlantEmoji(plant);
+            
+            const name = document.createElement('span');
+            name.textContent = plant.Crop;
+            
+            nameWrapper.appendChild(emoji);
+            nameWrapper.appendChild(name);
+            nameCell.appendChild(nameWrapper);
+            
+            // Sowing cell
+            const sowingCell = document.createElement('td');
+            if (plant['Sow early'] && plant['Sow late']) {
+                sowingCell.textContent = plant['Sow early'];
+                if (plant['Sow early'] !== plant['Sow late']) {
+                    sowingCell.textContent += ` - ${plant['Sow late']}`;
+                }
+            } else {
+                sowingCell.textContent = 'N/A';
+            }
+            
+            // Harvesting cell
+            const harvestingCell = document.createElement('td');
+            if (plant['Harvest from'] && plant['Latest harvest']) {
+                harvestingCell.textContent = plant['Harvest from'];
+                if (plant['Harvest from'] !== plant['Latest harvest']) {
+                    harvestingCell.textContent += ` - ${plant['Latest harvest']}`;
+                }
+            } else {
+                harvestingCell.textContent = 'N/A';
+            }
+            
+            // Spacing cell
+            const spacingCell = document.createElement('td');
+            const rowSpacing = plant['Between rows [RHS]'] || 'N/A';
+            const plantSpacing = plant['Between plants'] || 'N/A';
+            spacingCell.textContent = `Rows: ${rowSpacing}, Plants: ${plantSpacing}`;
+            
+            // Hardiness cell
+            const hardinessCell = document.createElement('td');
+            hardinessCell.textContent = plant.Hardiness || 'Unknown';
+            
+            // Add cells to row
+            row.appendChild(nameCell);
+            row.appendChild(sowingCell);
+            row.appendChild(harvestingCell);
+            row.appendChild(spacingCell);
+            row.appendChild(hardinessCell);
+            
+            // Add row to table
+            tableBody.appendChild(row);
+        });
+    }
+    
+    // Clear plant comparison
+    function clearComparison() {
+        // Uncheck all checkboxes
+        document.querySelectorAll('.plant-checkbox:checked').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        // Clear the table
+        const tableBody = document.getElementById('comparison-table-body');
+        if (tableBody) {
+            tableBody.innerHTML = '';
+            
+            // Show default message
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 5;
+            cell.textContent = 'Select plants to compare by checking the boxes in the plant catalog';
+            cell.style.textAlign = 'center';
+            cell.style.padding = '20px';
+            row.appendChild(cell);
+            tableBody.appendChild(row);
+        }
+    }
+
     // Initialize event listeners
     function initializeEventListeners() {
         // Tab switching
@@ -1277,6 +1725,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const tabId = button.dataset.tab;
                 switchTab(tabId);
                 console.log('Switched to tab:', tabId);
+                
+                // Initialize plant catalog when switching to info tab
+                if (tabId === 'info') {
+                    initializePlantCatalog();
+                }
             });
         });
         
@@ -1830,4 +2283,533 @@ document.addEventListener('DOMContentLoaded', () => {
                 harvestToMonth: 3,
                 companions: ['celery', 'onion', 'potato', 'aromatic herbs'],
                 enemies: ['tomato', 'strawberry', 'runner beans']
+            },
+            'spinach': { 
+                ID: 10, 
+                Crop: 'Spinach',
+                Family: 'Amaranthaceae',
+                Category: 'Annual fruit & veg',
+                Species: 'Spinacia oleracea',
+                Varieties: 'Bloomsdale, Regiment, Space, Tyee, Medania',
+                Soil: 'Rich, moist, well-drained',
+                Site: 'Partial shade in summer',
+                'Conditions for germination': '7-24°C, optimal 15°C',
+                'Sow early': 'March',
+                'Sow late': 'September',
+                'Transplant after': 'Not recommended',
+                'Plant out from': 'N/A',
+                'Plant out until': 'N/A',
+                Method: 'Direct sow',
+                'Between rows [RHS]': '30cm',
+                'Between plants': '10cm',
+                'Harvest from': 'May',
+                'Latest harvest': 'November',
+                'Weeks in bed': '6-8',
+                Rotation: 'Leafy',
+                Profitability: 'Medium',
+                Hardiness: 'Hardy',
+                'Growing tips': 'Succession sow every 2-3 weeks for continuous harvest. Prefers cool weather and bolts in hot conditions. Grows best in spring and fall.',
+                'Harvest tips': 'Harvest outer leaves when young for continuous production or cut entire plant at base. Best flavor before flowering.',
+                sowEarlyMonth: 2,
+                sowLateMonth: 8,
+                harvestFromMonth: 4,
+                harvestToMonth: 10,
+                companions: ['strawberry', 'pea', 'cabbage', 'cauliflower'],
+                enemies: ['potato', 'fennel']
+            },
+            'kale': { 
+                ID: 11, 
+                Crop: 'Kale',
+                Family: 'Brassicaceae',
+                Category: 'Annual fruit & veg',
+                Species: 'Brassica oleracea var. sabellica',
+                Varieties: 'Lacinato (Dinosaur), Curly, Red Russian, Redbor',
+                Soil: 'Fertile, well-drained, moisture-retentive',
+                Site: 'Full sun to partial shade',
+                'Conditions for germination': '7-30°C',
+                'Sow early': 'March',
+                'Sow late': 'July',
+                'Transplant after': '4-6 weeks',
+                'Plant out from': 'May',
+                'Plant out until': 'August',
+                Method: 'Transplant',
+                'Between rows [RHS]': '45cm',
+                'Between plants': '45cm',
+                'Harvest from': 'September',
+                'Latest harvest': 'March',
+                'Weeks in bed': '26-40',
+                Rotation: 'Brassica',
+                Profitability: 'Medium',
+                Hardiness: 'Very Hardy',
+                'Growing tips': 'Plant deeply and firm soil well. Protect from cabbage white butterflies. Flavor improves after frost. Add lime if soil pH is below 6.5.',
+                'Harvest tips': 'Harvest outer leaves first, working inward. Continuous harvest throughout winter. Young leaves are more tender.',
+                sowEarlyMonth: 2,
+                sowLateMonth: 6,
+                harvestFromMonth: 8,
+                harvestToMonth: 2,
+                companions: ['aromatic herbs', 'onion', 'potato', 'celery'],
+                enemies: ['strawberry', 'beans', 'tomato']
+            },
+            'zucchini': { 
+                ID: 12, 
+                Crop: 'Zucchini (Courgette)',
+                Family: 'Cucurbitaceae',
+                Category: 'Annual fruit & veg',
+                Species: 'Cucurbita pepo',
+                Varieties: 'Black Beauty, Gold Rush, Cocozelle, Romanesco',
+                Soil: 'Rich, well-drained, moisture-retentive',
+                Site: 'Full sun, sheltered',
+                'Conditions for germination': '20-35°C',
+                'Sow early': 'April',
+                'Sow late': 'June',
+                'Transplant after': '3-4 weeks',
+                'Plant out from': 'May',
+                'Plant out until': 'July',
+                Method: 'Transplant or direct',
+                'Between rows [RHS]': '90cm',
+                'Between plants': '75cm',
+                'Harvest from': 'June',
+                'Latest harvest': 'October',
+                'Weeks in bed': '12-16',
+                Rotation: 'Fruiting Veg',
+                Profitability: 'High',
+                Hardiness: 'Tender',
+                'Growing tips': 'Sow seeds on edge to prevent rotting. Plant in hills or mounds. Hand pollinate first female flowers if insect activity is low. Keep consistently watered.',
+                'Harvest tips': 'Pick young at 15-20cm for best flavor and to encourage more fruiting. Harvest frequently (every 1-2 days).',
+                sowEarlyMonth: 3,
+                sowLateMonth: 5,
+                harvestFromMonth: 5,
+                harvestToMonth: 9,
+                companions: ['corn', 'bean', 'nasturtium', 'marigold'],
+                enemies: ['potato', 'fennel']
+            },
+            'pea': { 
+                ID: 13, 
+                Crop: 'Pea',
+                Family: 'Fabaceae',
+                Category: 'Annual fruit & veg',
+                Species: 'Pisum sativum',
+                Varieties: 'Sugar Snap, Snow Pea, English Pea, Mammoth Melting',
+                Soil: 'Well-drained, moderate fertility',
+                Site: 'Full sun to light shade',
+                'Conditions for germination': '4-24°C, optimal 17°C',
+                'Sow early': 'February',
+                'Sow late': 'June',
+                'Transplant after': 'Not recommended',
+                'Plant out from': 'N/A',
+                'Plant out until': 'N/A',
+                Method: 'Direct sow',
+                'Between rows [RHS]': '45cm',
+                'Between plants': '5cm',
+                'Harvest from': 'May',
+                'Latest harvest': 'October',
+                'Weeks in bed': '12-16',
+                Rotation: 'Legume',
+                Profitability: 'Medium',
+                Hardiness: 'Half Hardy',
+                'Growing tips': 'Provide support for climbing varieties. Do not require rich soil as they fix their own nitrogen. Soak seeds overnight before planting. Succession plant for continuous harvest.',
+                'Harvest tips': 'Pick regularly to encourage more pods. Snap peas are ready when pods are plump but still glossy. Shell peas are ready when pods are well filled.',
+                sowEarlyMonth: 1,
+                sowLateMonth: 5,
+                harvestFromMonth: 4,
+                harvestToMonth: 9,
+                companions: ['carrot', 'cucumber', 'radish', 'turnip', 'corn'],
+                enemies: ['onion', 'garlic', 'potato']
+            },
+            'bean': { 
+                ID: 14, 
+                Crop: 'Bean (Bush)',
+                Family: 'Fabaceae',
+                Category: 'Annual fruit & veg',
+                Species: 'Phaseolus vulgaris',
+                Varieties: 'Provider, Blue Lake, Royal Burgundy, Roma II',
+                Soil: 'Well-drained, warm',
+                Site: 'Full sun',
+                'Conditions for germination': '15-30°C, optimal 25°C',
+                'Sow early': 'May',
+                'Sow late': 'July',
+                'Transplant after': 'Not recommended',
+                'Plant out from': 'N/A',
+                'Plant out until': 'N/A',
+                Method: 'Direct sow',
+                'Between rows [RHS]': '45cm',
+                'Between plants': '10cm',
+                'Harvest from': 'July',
+                'Latest harvest': 'October',
+                'Weeks in bed': '8-12',
+                Rotation: 'Legume',
+                Profitability: 'Medium',
+                Hardiness: 'Tender',
+                'Growing tips': 'Sow after all danger of frost. Do not soak seeds. Plant in succession for continuous harvest. Avoid disturbing roots when weeding.',
+                'Harvest tips': 'Pick regularly to encourage more pods. Harvest when pods are firm but before seeds bulge. Use both hands to avoid damaging plants.',
+                sowEarlyMonth: 4,
+                sowLateMonth: 6,
+                harvestFromMonth: 6,
+                harvestToMonth: 9,
+                companions: ['corn', 'radish', 'potato', 'cucumber', 'sunflower'],
+                enemies: ['onion', 'garlic', 'fennel', 'beets']
+            },
+            'radish': { 
+                ID: 15, 
+                Crop: 'Radish',
+                Family: 'Brassicaceae',
+                Category: 'Annual fruit & veg',
+                Species: 'Raphanus sativus',
+                Varieties: 'Cherry Belle, French Breakfast, White Icicle, Watermelon',
+                Soil: 'Light, sandy, well-drained',
+                Site: 'Full sun to partial shade',
+                'Conditions for germination': '5-30°C, optimal 18-24°C',
+                'Sow early': 'March',
+                'Sow late': 'September',
+                'Transplant after': 'Not recommended',
+                'Plant out from': 'N/A',
+                'Plant out until': 'N/A',
+                Method: 'Direct sow',
+                'Between rows [RHS]': '15cm',
+                'Between plants': '2.5cm',
+                'Harvest from': 'April',
+                'Latest harvest': 'November',
+                'Weeks in bed': '3-6',
+                Rotation: 'Brassica',
+                Profitability: 'Low',
+                Hardiness: 'Hardy',
+                'Growing tips': 'Sow small amounts every 1-2 weeks for continuous harvest. Keep well watered for quick growth and mild flavor. Grows well in containers.',
+                'Harvest tips': 'Harvest when young for best flavor. Pull when roots are 2-3cm in diameter. Summer radishes become pithy if left too long.',
+                sowEarlyMonth: 2,
+                sowLateMonth: 8,
+                harvestFromMonth: 3,
+                harvestToMonth: 10,
+                companions: ['pea', 'bean', 'cucumber', 'lettuce', 'spinach'],
+                enemies: ['hyssop', 'potato', 'cabbage']
+            },
+            'basil': { 
+                ID: 16, 
+                Crop: 'Basil',
+                Family: 'Lamiaceae',
+                Category: 'Annual herb & spice',
+                Species: 'Ocimum basilicum',
+                Varieties: 'Sweet Italian, Thai, Purple, Lemon, Cinnamon',
+                Soil: 'Rich, moist, well-drained',
+                Site: 'Full sun, sheltered',
+                'Conditions for germination': '20-30°C',
+                'Sow early': 'March',
+                'Sow late': 'June',
+                'Transplant after': '3-4 weeks',
+                'Plant out from': 'May',
+                'Plant out until': 'July',
+                Method: 'Transplant',
+                'Between rows [RHS]': '30cm',
+                'Between plants': '25cm',
+                'Harvest from': 'June',
+                'Latest harvest': 'October',
+                'Weeks in bed': '12-16',
+                Rotation: 'Herb',
+                Profitability: 'Medium',
+                Hardiness: 'Tender',
+                'Growing tips': 'Needs consistently warm temperatures. Pinch back growing tips to encourage bushier growth. Water at base to avoid wetting leaves. Avoid cold temperatures at all times.',
+                'Harvest tips': 'Harvest from the top down, cutting stems to encourage branching. Best flavor before flowering. Morning harvest has highest oil content.',
+                sowEarlyMonth: 2,
+                sowLateMonth: 5,
+                harvestFromMonth: 5,
+                harvestToMonth: 9,
+                companions: ['tomato', 'pepper', 'eggplant', 'marigold', 'oregano'],
+                enemies: ['rue', 'sage', 'fennel']
+            },
+            'rosemary': { 
+                ID: 17, 
+                Crop: 'Rosemary',
+                Family: 'Lamiaceae',
+                Category: 'Perennial herbs & spice',
+                Species: 'Salvia rosmarinus',
+                Varieties: 'Tuscan Blue, Arp, Spice Islands, Prostrate',
+                Soil: 'Well-drained, sandy or loamy',
+                Site: 'Full sun',
+                'Conditions for germination': '15-20°C',
+                'Sow early': 'February',
+                'Sow late': 'April',
+                'Transplant after': '8-10 weeks',
+                'Plant out from': 'May',
+                'Plant out until': 'September',
+                Method: 'Transplant or cuttings',
+                'Between rows [RHS]': '60cm',
+                'Between plants': '60cm',
+                'Harvest from': 'June',
+                'Latest harvest': 'November',
+                'Weeks in bed': 'Perennial',
+                Rotation: 'Herb',
+                Profitability: 'Medium',
+                Hardiness: 'Hardy to -10°C',
+                'Growing tips': 'Prefers poor to average soil with good drainage. Drought tolerant once established. Cuttings root more reliably than seeds. Provide good air circulation to prevent powdery mildew.',
+                'Harvest tips': 'Harvest year-round but flavor best before flowering. Cut young stems for softer texture. Never remove more than 1/3 of plant at once.',
+                sowEarlyMonth: 1,
+                sowLateMonth: 3,
+                harvestFromMonth: 5,
+                harvestToMonth: 10,
+                companions: ['cabbage', 'beans', 'carrots', 'sage'],
+                enemies: ['pumpkin', 'cucumber', 'squash']
+            },
+            'strawberry': { 
+                ID: 18, 
+                Crop: 'Strawberry',
+                Family: 'Rosaceae',
+                Category: 'Soft fruit',
+                Species: 'Fragaria × ananassa',
+                Varieties: 'Honeoye, Albion, Everbearing, Alpine, Chandler',
+                Soil: 'Rich, well-drained, slightly acidic',
+                Site: 'Full sun',
+                'Conditions for germination': 'N/A',
+                'Sow early': 'N/A',
+                'Sow late': 'N/A',
+                'Transplant after': 'N/A',
+                'Plant out from': 'March',
+                'Plant out until': 'September',
+                Method: 'Crown division or runners',
+                'Between rows [RHS]': '75cm',
+                'Between plants': '30cm',
+                'Harvest from': 'May',
+                'Latest harvest': 'September',
+                'Weeks in bed': 'Perennial (3-4 years)',
+                Rotation: 'Fruit',
+                Profitability: 'High',
+                Hardiness: 'Hardy',
+                'Growing tips': 'Plant so crown is at soil level. Mulch with straw to keep fruits clean and suppress weeds. Remove runners unless propagating. Replace plants every 3-4 years.',
+                'Harvest tips': 'Harvest when fully colored with a slight give. Leave stem and cap attached for longer shelf life. Pick every 2-3 days during peak season.',
+                sowEarlyMonth: null,
+                sowLateMonth: null,
+                harvestFromMonth: 4,
+                harvestToMonth: 8,
+                companions: ['lettuce', 'spinach', 'onion', 'thyme', 'borage'],
+                enemies: ['cabbage', 'broccoli', 'cauliflower', 'potato']
+            },
+            'corn': { 
+                ID: 19, 
+                Crop: 'Corn (Sweet)',
+                Family: 'Poaceae',
+                Category: 'Annual fruit & veg',
+                Species: 'Zea mays',
+                Varieties: 'Golden Bantam, Silver Queen, Sugar Pearl, Ambrosia',
+                Soil: 'Rich, deep, well-drained',
+                Site: 'Full sun',
+                'Conditions for germination': '16-35°C, optimal 21-27°C',
+                'Sow early': 'May',
+                'Sow late': 'June',
+                'Transplant after': '2-3 weeks',
+                'Plant out from': 'May',
+                'Plant out until': 'June',
+                Method: 'Direct sow or transplant',
+                'Between rows [RHS]': '75cm',
+                'Between plants': '25cm',
+                'Harvest from': 'August',
+                'Latest harvest': 'October',
+                'Weeks in bed': '12-16',
+                Rotation: 'Grain',
+                Profitability: 'Medium',
+                Hardiness: 'Tender',
+                'Growing tips': 'Plant in blocks rather than rows for better pollination. Heavy feeder - add compost before planting and side-dress when knee-high. Hand pollinate by shaking stalks in dry weather.',
+                'Harvest tips': 'Ready when silks turn brown and kernels produce a milky juice when punctured. Best eaten immediately after harvest as sweetness diminishes rapidly.',
+                sowEarlyMonth: 4,
+                sowLateMonth: 5,
+                harvestFromMonth: 7,
+                harvestToMonth: 9,
+                companions: ['bean', 'cucumber', 'pumpkin', 'squash', 'pea'],
+                enemies: ['tomato', 'celery']
+            },
+            'sage': { 
+                ID: 20, 
+                Crop: 'Sage',
+                Family: 'Lamiaceae',
+                Category: 'Perennial herbs & spice',
+                Species: 'Salvia officinalis',
+                Varieties: 'Common, Purple, Golden, Tricolor, Berggarten',
+                Soil: 'Well-drained, sandy or loamy',
+                Site: 'Full sun',
+                'Conditions for germination': '15-20°C',
+                'Sow early': 'March',
+                'Sow late': 'May',
+                'Transplant after': '6-8 weeks',
+                'Plant out from': 'May',
+                'Plant out until': 'September',
+                Method: 'Transplant or cuttings',
+                'Between rows [RHS]': '60cm',
+                'Between plants': '60cm',
+                'Harvest from': 'June',
+                'Latest harvest': 'November',
+                'Weeks in bed': 'Perennial',
+                Rotation: 'Herb',
+                Profitability: 'Medium',
+                Hardiness: 'Hardy',
+                'Growing tips': 'Prefers poor to average soil with good drainage. Drought tolerant once established. Prune in spring to maintain shape and vigor. Replace every 3-4 years as plants become woody.',
+                'Harvest tips': 'Harvest year-round but flavor best before flowering. Young leaves have milder flavor. Dry or freeze for winter use.',
+                sowEarlyMonth: 2,
+                sowLateMonth: 4,
+                harvestFromMonth: 5,
+                harvestToMonth: 10,
+                companions: ['rosemary', 'cabbage', 'carrots', 'strawberry'],
+                enemies: ['cucumber', 'basil', 'fennel']
+            },
+            'marigold': { 
+                ID: 21, 
+                Crop: 'Marigold',
+                Family: 'Asteraceae',
+                Category: 'Annual flowers',
+                Species: 'Tagetes spp.',
+                Varieties: 'French, African, Signet, Gem',
+                Soil: 'Well-drained, moderate fertility',
+                Site: 'Full sun',
+                'Conditions for germination': '18-24°C',
+                'Sow early': 'March',
+                'Sow late': 'May',
+                'Transplant after': '4-6 weeks',
+                'Plant out from': 'May',
+                'Plant out until': 'June',
+                Method: 'Transplant or direct',
+                'Between rows [RHS]': '30cm',
+                'Between plants': '25cm',
+                'Harvest from': 'June',
+                'Latest harvest': 'October',
+                'Weeks in bed': '12-24',
+                Rotation: 'Flower',
+                Profitability: 'Low',
+                Hardiness: 'Tender annual',
+                'Growing tips': 'Drought tolerant once established. Deadhead to promote continuous flowering. French marigolds deter nematodes in soil. Excess nitrogen produces lush foliage but fewer flowers.',
+                'Harvest tips': 'Harvest flowers for culinary use in morning when fully opened. Petals can be used fresh in salads or dried for teas and coloring.',
+                sowEarlyMonth: 2,
+                sowLateMonth: 4,
+                harvestFromMonth: 5,
+                harvestToMonth: 9,
+                companions: ['tomato', 'pepper', 'eggplant', 'potato', 'most vegetables'],
+                enemies: ['bean', 'cabbage']
+            },
+            'nasturtium': { 
+                ID: 22, 
+                Crop: 'Nasturtium',
+                Family: 'Tropaeolaceae',
+                Category: 'Annual flowers',
+                Species: 'Tropaeolum majus',
+                Varieties: 'Jewel Mix, Alaska, Empress of India, Peach Melba',
+                Soil: 'Poor to moderate fertility, well-drained',
+                Site: 'Full sun to partial shade',
+                'Conditions for germination': '12-18°C',
+                'Sow early': 'April',
+                'Sow late': 'June',
+                'Transplant after': '3-4 weeks',
+                'Plant out from': 'May',
+                'Plant out until': 'July',
+                Method: 'Direct sow or transplant',
+                'Between rows [RHS]': '30cm',
+                'Between plants': '30cm',
+                'Harvest from': 'June',
+                'Latest harvest': 'October',
+                'Weeks in bed': '12-20',
+                Rotation: 'Flower',
+                Profitability: 'Low',
+                Hardiness: 'Tender annual',
+                'Growing tips': 'Prefers poor soil - rich soil produces lush foliage but fewer flowers. Nick or soak seeds before planting. Trailing varieties good for ground cover or hanging baskets.',
+                'Harvest tips': 'All parts are edible. Harvest young leaves and flowers for salads. Collect seeds when green for pickling as "poor man\'s capers".',
+                sowEarlyMonth: 3,
+                sowLateMonth: 5,
+                harvestFromMonth: 5,
+                harvestToMonth: 9,
+                companions: ['cucumber', 'squash', 'radish', 'tomato', 'fruit trees'],
+                enemies: ['fennel']
+            },
+            'thyme': { 
+                ID: 23, 
+                Crop: 'Thyme',
+                Family: 'Lamiaceae',
+                Category: 'Perennial herbs & spice',
+                Species: 'Thymus vulgaris',
+                Varieties: 'Common, Lemon, Silver, Creeping, Caraway',
+                Soil: 'Well-drained, rocky or sandy',
+                Site: 'Full sun',
+                'Conditions for germination': '15-21°C',
+                'Sow early': 'February',
+                'Sow late': 'April',
+                'Transplant after': '6-8 weeks',
+                'Plant out from': 'April',
+                'Plant out until': 'September',
+                Method: 'Transplant or cuttings',
+                'Between rows [RHS]': '30cm',
+                'Between plants': '25cm',
+                'Harvest from': 'May',
+                'Latest harvest': 'October',
+                'Weeks in bed': 'Perennial',
+                Rotation: 'Herb',
+                Profitability: 'Medium',
+                Hardiness: 'Hardy',
+                'Growing tips': 'Prefers alkaline soil (pH 7.0-7.5). Excellent for poor, dry soils. Light trimming after flowering keeps plants compact. Divide every 3-4 years in spring.',
+                'Harvest tips': 'Harvest year-round but flavor most intense just before flowering. Morning harvest has highest oil content. Cut stems with sharp scissors.',
+                sowEarlyMonth: 1,
+                sowLateMonth: 3,
+                harvestFromMonth: 4,
+                harvestToMonth: 9,
+                companions: ['cabbage', 'tomato', 'eggplant', 'strawberry', 'rosemary'],
+                enemies: ['fennel']
+            },
+            'mint': { 
+                ID: 24, 
+                Crop: 'Mint',
+                Family: 'Lamiaceae',
+                Category: 'Perennial herbs & spice',
+                Species: 'Mentha spp.',
+                Varieties: 'Spearmint, Peppermint, Apple, Chocolate, Moroccan',
+                Soil: 'Rich, moist, well-drained',
+                Site: 'Partial shade to full sun',
+                'Conditions for germination': '18-21°C',
+                'Sow early': 'March',
+                'Sow late': 'May',
+                'Transplant after': '6-8 weeks',
+                'Plant out from': 'April',
+                'Plant out until': 'September',
+                Method: 'Division or cuttings',
+                'Between rows [RHS]': '45cm',
+                'Between plants': '45cm',
+                'Harvest from': 'May',
+                'Latest harvest': 'October',
+                'Weeks in bed': 'Perennial',
+                Rotation: 'Herb',
+                Profitability: 'Medium',
+                Hardiness: 'Hardy',
+                'Growing tips': 'Highly invasive - best grown in containers. Prefers consistently moist soil. Cut back after flowering to encourage fresh growth. Divide every 1-2 years.',
+                'Harvest tips': 'Harvest regularly to encourage bushier growth. Flavor most intense just before flowering. Morning harvest has highest oil content.',
+                sowEarlyMonth: 2,
+                sowLateMonth: 4,
+                harvestFromMonth: 4,
+                harvestToMonth: 9,
+                companions: ['tomato', 'cabbage', 'pea'],
+                enemies: ['parsley', 'chamomile']
+            },
+            'sunflower': { 
+                ID: 25, 
+                Crop: 'Sunflower',
+                Family: 'Asteraceae',
+                Category: 'Annual flowers',
+                Species: 'Helianthus annuus',
+                Varieties: 'Mammoth, Teddy Bear, Italian White, Black Russian',
+                Soil: 'Fertile, well-drained',
+                Site: 'Full sun',
+                'Conditions for germination': '18-24°C',
+                'Sow early': 'April',
+                'Sow late': 'June',
+                'Transplant after': '3-4 weeks',
+                'Plant out from': 'May',
+                'Plant out until': 'July',
+                Method: 'Direct sow or transplant',
+                'Between rows [RHS]': '45cm',
+                'Between plants': '45cm',
+                'Harvest from': 'August',
+                'Latest harvest': 'October',
+                'Weeks in bed': '12-24',
+                Rotation: 'Flower',
+                Profitability: 'Medium',
+                Hardiness: 'Tender annual',
+                'Growing tips': 'Deep taproot helps break up soil. Stake tall varieties. Protect seedlings from birds and slugs. High nitrogen can weaken stems and delay flowering.',
+                'Harvest tips': 'For edible seeds, harvest when backs of flower heads turn yellow. For cut flowers, harvest when petals just begin to open.',
+                sowEarlyMonth: 3,
+                sowLateMonth: 5,
+                harvestFromMonth: 7,
+                harvestToMonth: 9,
+                companions: ['cucumber', 'corn', 'bean', 'squash'],
+                enemies: ['potato', 'fennel']
             }
+        }

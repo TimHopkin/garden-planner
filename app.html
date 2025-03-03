@@ -137,14 +137,72 @@
                 </div>
                 
                 <div class="tab-content" id="info-tab" style="display: none;">
-                    <div class="plant-database-intro">
-                        <h2>Plant Database</h2>
-                        <p>Browse detailed information about plants in our database. Select a plant from the list on the left to view its growing information, companion planting suggestions, and more.</p>
+                    <div class="plant-database-controls">
+                        <div class="database-header">
+                            <h2>Plant Database</h2>
+                            <div class="database-search">
+                                <input type="text" id="database-search-input" placeholder="Search plants...">
+                                <select id="database-category-filter">
+                                    <option value="">All Categories</option>
+                                </select>
+                                <button id="database-view-all" class="btn btn-outline"><i class="fas fa-th-large"></i> View All</button>
+                            </div>
+                        </div>
+                        <div class="database-filters">
+                            <div class="filter-group">
+                                <label>Season:</label>
+                                <div class="button-filter">
+                                    <button class="filter-btn" data-season="spring"><i class="fas fa-seedling"></i> Spring</button>
+                                    <button class="filter-btn" data-season="summer"><i class="fas fa-sun"></i> Summer</button>
+                                    <button class="filter-btn" data-season="fall"><i class="fas fa-leaf"></i> Fall</button>
+                                    <button class="filter-btn" data-season="winter"><i class="fas fa-snowflake"></i> Winter</button>
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <label>Difficulty:</label>
+                                <div class="button-filter">
+                                    <button class="filter-btn" data-difficulty="beginner"><i class="fas fa-smile"></i> Beginner</button>
+                                    <button class="filter-btn" data-difficulty="intermediate"><i class="fas fa-meh"></i> Intermediate</button>
+                                    <button class="filter-btn" data-difficulty="advanced"><i class="fas fa-graduation-cap"></i> Advanced</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="plant-info-panel" id="plant-info-panel">
-                        <div class="plant-info-placeholder">
-                            <i class="fas fa-leaf plant-icon"></i>
-                            <p>Select a plant to view detailed information</p>
+                    
+                    <div class="plant-database-container">
+                        <div class="plant-catalog" id="plant-catalog">
+                            <!-- Plant cards will be populated here -->
+                        </div>
+                        
+                        <div class="plant-info-panel" id="plant-info-panel">
+                            <div class="plant-info-placeholder">
+                                <i class="fas fa-leaf plant-icon"></i>
+                                <p>Select a plant to view detailed information</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="plant-comparison" id="plant-comparison">
+                        <h3>Plant Comparison</h3>
+                        <div class="comparison-controls">
+                            <button id="compare-selected" class="btn btn-primary"><i class="fas fa-balance-scale"></i> Compare Selected</button>
+                            <button id="clear-comparison" class="btn btn-outline"><i class="fas fa-times"></i> Clear</button>
+                        </div>
+                        <div class="comparison-table-container">
+                            <table class="comparison-table" id="comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th>Plant</th>
+                                        <th>Sowing</th>
+                                        <th>Harvesting</th>
+                                        <th>Spacing</th>
+                                        <th>Hardiness</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="comparison-table-body">
+                                    <!-- Comparison data will be populated here -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
